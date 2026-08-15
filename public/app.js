@@ -448,7 +448,6 @@
     const canvasSize = 4000;
     svg.setAttribute("width", canvasSize);
     svg.setAttribute("height", canvasSize);
-    const pRect = nodesContainer.getBoundingClientRect();
     
     svg.innerHTML = "";
     
@@ -469,14 +468,15 @@
       const targetEl = document.getElementById(pair.target);
       if (!sourceEl || !targetEl) return;
 
-      const sRect = sourceEl.getBoundingClientRect();
-      const tRect = targetEl.getBoundingClientRect();
+      const sourceData = groupData.members.find(m => m.id === pair.source);
+      const targetData = groupData.members.find(m => m.id === pair.target);
+      if (!sourceData || !targetData) return;
 
-      // Calculate relative coordinates
-      const x1 = sRect.left - pRect.left + sRect.width / 2;
-      const y1 = sRect.top - pRect.top + sRect.height / 2;
-      const x2 = tRect.left - pRect.left + tRect.width / 2;
-      const y2 = tRect.top - pRect.top + tRect.height / 2;
+      // Use raw x/y from data (unscaled coordinates, matching the transform space)
+      const x1 = sourceData.x;
+      const y1 = sourceData.y;
+      const x2 = targetData.x;
+      const y2 = targetData.y;
 
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", x1);
