@@ -3,129 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hôm Nay Ăn Gì? | Giúp bạn chọn món ăn ngẫu nhiên</title>
-    <meta name="description" content="Ứng dụng giúp bạn quyết định hôm nay ăn gì khi bạn không biết nên ăn món nào. Quay bánh xe chọn món ngẫu nhiên!">
+    <title>Gia Phả Nhóm | Sơ đồ mối quan hệ</title>
+    <meta name="description" content="Ứng dụng giúp bạn quản lý và khám phá các mối quan hệ trong nhóm!">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
-    <!-- Floating Food Emojis Background -->
+    <!-- Floating Emojis Background -->
     <div class="floating-emojis" id="floatingEmojis"></div>
 
     <!-- Header -->
     <header class="header">
         <div class="logo">
-            <span class="logo-icon">🍜</span>
-            <span class="logo-text">Hôm Nay Ăn Gì?</span>
+            <span class="logo-icon">🌳</span>
+            <span class="logo-text">Gia Phả Nhóm</span>
         </div>
-        <nav class="nav">
-            <button class="nav-btn active" data-section="wheel" id="nav-wheel">
-                <span class="nav-icon">🎡</span> Vòng Quay
-            </button>
-            <button class="nav-btn" data-section="random" id="nav-random">
-                <span class="nav-icon">🎲</span> Ngẫu Nhiên
-            </button>
-            <button class="nav-btn" data-section="menu" id="nav-menu">
-                <span class="nav-icon">📋</span> Thực Đơn
-            </button>
-            <button class="nav-btn" data-section="tree" id="nav-tree">
-                <span class="nav-icon">🌳</span> Gia Phả
-            </button>
-        </nav>
     </header>
 
     <!-- Hero Section -->
     <main class="main-content">
-        <!-- Wheel Section -->
-        <section class="section wheel-section active" id="section-wheel">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    <span class="hero-line">Không biết</span>
-                    <span class="hero-line gradient-text">ăn gì?</span>
-                </h1>
-                <p class="hero-subtitle">Để vòng quay quyết định giúp bạn! Nhấn nút bên dưới và xem số phận chọn món gì cho bạn hôm nay 🍀</p>
-            </div>
-
-            <!-- Category Filter -->
-            <div class="category-filter">
-                <button class="cat-btn active" data-category="all" id="cat-all">🍽️ Tất cả</button>
-                <button class="cat-btn" data-category="com" id="cat-com">🍚 Cơm</button>
-                <button class="cat-btn" data-category="pho" id="cat-pho">🍜 Phở & Bún</button>
-                <button class="cat-btn" data-category="an-vat" id="cat-anvat">🍢 Ăn vặt</button>
-                <button class="cat-btn" data-category="do-uong" id="cat-douong">🧋 Đồ uống</button>
-                <button class="cat-btn" data-category="tay" id="cat-tay">🍕 Món Tây</button>
-                <button class="cat-btn" data-category="han-nhat" id="cat-hannhat">🍣 Hàn & Nhật</button>
-            </div>
-
-            <!-- Wheel Container -->
-            <div class="wheel-container">
-                <div class="wheel-wrapper">
-                    <div class="wheel-pointer">▼</div>
-                    <canvas id="wheelCanvas" width="420" height="420"></canvas>
-                </div>
-                <button class="spin-btn" id="spinBtn">
-                    <span class="spin-text">QUAY!</span>
-                    <span class="spin-icon">🎰</span>
-                </button>
-            </div>
-
-            <!-- Result Display -->
-            <div class="result-container hidden" id="resultContainer">
-                <div class="result-card">
-                    <div class="result-confetti" id="confetti"></div>
-                    <span class="result-label">Hôm nay bạn sẽ ăn:</span>
-                    <div class="result-food">
-                        <span class="result-emoji" id="resultEmoji">🍜</span>
-                        <h2 class="result-name" id="resultName">Phở Bò</h2>
-                    </div>
-                    <p class="result-desc" id="resultDesc">Món phở truyền thống với nước dùng đậm đà</p>
-                    <div class="result-actions">
-                        <button class="action-btn primary" id="acceptBtn">
-                            ✅ Chấp nhận số phận
-                        </button>
-                        <button class="action-btn secondary" id="rerollBtn">
-                            🔄 Quay lại lần nữa
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Random Card Section -->
-        <section class="section random-section" id="section-random">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    <span class="hero-line">Lật thẻ</span>
-                    <span class="hero-line gradient-text">may mắn 🃏</span>
-                </h1>
-                <p class="hero-subtitle">Nhấn vào thẻ để lật và khám phá món ăn bí ẩn dành cho bạn!</p>
-            </div>
-            <div class="cards-grid" id="cardsGrid">
-                <!-- Cards will be generated by JS -->
-            </div>
-            <button class="shuffle-btn" id="shuffleBtn">
-                🔀 Xáo bài mới
-            </button>
-        </section>
-
-        <!-- Menu Section -->
-        <section class="section menu-section" id="section-menu">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    <span class="hero-line">Khám phá</span>
-                    <span class="hero-line gradient-text">thực đơn 📖</span>
-                </h1>
-                <p class="hero-subtitle">Duyệt qua danh sách các món ăn theo từng danh mục</p>
-            </div>
-            <div class="menu-categories" id="menuCategories">
-                <!-- Menu items will be generated by JS -->
-            </div>
-        </section>
-
         <!-- Tree Section (Group Graph) -->
-        <section class="section tree-section" id="section-tree">
+        <section class="section tree-section active" id="section-tree">
             <div class="hero-text">
                 <h1 class="hero-title">
                     <span class="hero-line">Gia phả</span>
@@ -206,35 +106,10 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>Made with 🧡 for những người không biết ăn gì</p>
-        <p class="footer-sub">© 2025 Hôm Nay Ăn Gì? — Ứng dụng cứu đói nhân loại</p>
+        <p>Made with 🧡 for you</p>
+        <p class="footer-sub">© 2025 Gia Phả Nhóm</p>
     </footer>
 
-    <!-- Popup Modal -->
-    <div class="popup-overlay hidden" id="popupOverlay">
-        <div class="popup-modal" id="popupModal">
-            <button class="popup-close" id="popupClose" aria-label="Đóng">✕</button>
-            <div class="popup-confetti" id="popupConfetti"></div>
-            <div class="popup-glow"></div>
-            <div class="popup-content">
-                <span class="popup-badge" id="popupBadge">🎉 Đã chọn!</span>
-                <span class="popup-emoji" id="popupEmoji">🍜</span>
-                <h2 class="popup-name" id="popupName">Phở Bò</h2>
-                <p class="popup-desc" id="popupDesc">Món phở truyền thống với nước dùng đậm đà</p>
-                <div class="popup-tags" id="popupTags"></div>
-                <div class="popup-actions">
-                    <button class="popup-btn primary" id="popupAccept">
-                        <span>✅</span> Chấp nhận số phận
-                    </button>
-                    <button class="popup-btn secondary" id="popupReroll">
-                        <span>🔄</span> Thử món khác
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="data.js?v=2"></script>
     <script src="app.js?v=2"></script>
 </body>
 </html>
