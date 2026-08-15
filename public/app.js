@@ -35,6 +35,13 @@
   let dragNodeId = null;
   let dragStartX, dragStartY, nodeStartX, nodeStartY;
 
+  // Zoom & Pan state
+  let currentZoom = 1;
+  let panX = 0, panY = 0;
+  let isPanning = false;
+  let panStartX = 0, panStartY = 0, panStartPanX = 0, panStartPanY = 0;
+  let lastPinchDist = 0;
+
   async function initGroupGraph() {
     try {
       const res = await fetch('/api/graph');
@@ -68,8 +75,28 @@
       // Mouse/touch up
       window.addEventListener("mouseup", handleEndDrag);
       window.addEventListener("touchend", handleEndDrag);
+
+      // Scroll-wheel zoom
+      graphArea.addEventListener("wheel", handleWheelZoom, { passive: false });
+
+      // Pan: mouse drag on empty area
+      graphArea.addEventListener("mousedown", handlePanStart);
+      graphArea.addEventListener("mousemove", handlePanMove);
+      window.addEventListener("mouseup", handlePanEnd);
+
+      // Pan: touch drag on empty area + pinch zoom
+      graphArea.addEventListener("touchstart", handleTouchStart, { passive: false });
+      graphArea.addEventListener("touchend", handlePanEnd);
     }
     
+    // Zoom buttons
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomResetBtn = document.getElementById("zoomResetBtn");
+    if (zoomInBtn) zoomInBtn.addEventListener("click", () => applyZoom(currentZoom + 0.15));
+    if (zoomOutBtn) zoomOutBtn.addEventListener("click", () => applyZoom(currentZoom - 0.15));
+    if (zoomResetBtn) zoomResetBtn.addEventListener("click", () => { panX = 0; panY = 0; applyZoom(1); });
+
     const addCustomRelBtn = document.getElementById("addCustomRelBtn");
     if (addCustomRelBtn) addCustomRelBtn.addEventListener("click", handleAddCustomRel);
 
@@ -270,21 +297,47 @@
   function handleDragNode(e) {
     if (!dragNodeId) return;
     
-    const dx = e.clientX - dragStartX;
-    const dy = e.clientY - dragStartY;
+    const dx = (e.clientX - dragStartX) / currentZoom;
+    const dy = (e.clientY - dragStartY) / currentZoom;
     
     updateNodePosition(dx, dy);
   }
 
   function handleTouchMove(e) {
-    if (!dragNodeId) return;
-    e.preventDefault(); // Prevent scrolling
+    // Handle pinch zoom with 2 fingers
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (lastPinchDist > 0) {
+        const delta = (dist - lastPinchDist) * 0.005;
+        applyZoom(currentZoom + delta);
+      }
+      lastPinchDist = dist;
+      return;
+    }
+
+    if (!dragNodeId && !isPanning) return;
+    e.preventDefault();
     
     const touch = e.touches[0];
-    const dx = touch.clientX - dragStartX;
-    const dy = touch.clientY - dragStartY;
-    
-    updateNodePosition(dx, dy);
+
+    // Panning on background
+    if (isPanning) {
+      panX = panStartPanX + (touch.clientX - panStartX);
+      panY = panStartPanY + (touch.clientY - panStartY);
+      applyTransform();
+      return;
+    }
+
+    // Dragging a node
+    if (dragNodeId) {
+      const dx = (touch.clientX - dragStartX) / currentZoom;
+      const dy = (touch.clientY - dragStartY) / currentZoom;
+      updateNodePosition(dx, dy);
+    }
   }
 
   function updateNodePosition(dx, dy) {
@@ -304,6 +357,8 @@
   }
 
   async function handleEndDrag() {
+    lastPinchDist = 0;
+    isPanning = false;
     if (dragNodeId) {
       dragNodeId = null;
       document.body.style.overflow = ""; // Restore scrolling
@@ -319,15 +374,81 @@
     }
   }
 
+  // === ZOOM & PAN ===
+  function applyZoom(newZoom) {
+    currentZoom = Math.max(0.3, Math.min(3, newZoom));
+    applyTransform();
+    const resetBtn = document.getElementById("zoomResetBtn");
+    if (resetBtn) resetBtn.textContent = Math.round(currentZoom * 100) + "%";
+    // Redraw lines at new scale
+    setTimeout(drawLines, 0);
+  }
+
+  function applyTransform() {
+    const content = document.getElementById("graphContent");
+    if (content) {
+      content.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+    }
+  }
+
+  function handleWheelZoom(e) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.08 : 0.08;
+    applyZoom(currentZoom + delta);
+  }
+
+  function handlePanStart(e) {
+    // Only start panning if clicking on the background (not on a node)
+    if (e.target.closest(".graph-node") || e.target.closest(".rel-label-group") || e.target.closest(".zoom-controls")) return;
+    isPanning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    panStartPanX = panX;
+    panStartPanY = panY;
+  }
+
+  function handlePanMove(e) {
+    if (!isPanning) return;
+    panX = panStartPanX + (e.clientX - panStartX);
+    panY = panStartPanY + (e.clientY - panStartY);
+    applyTransform();
+  }
+
+  function handlePanEnd() {
+    isPanning = false;
+    lastPinchDist = 0;
+  }
+
+  function handleTouchStart(e) {
+    // Pinch init
+    if (e.touches.length === 2) {
+      lastPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      return;
+    }
+    // Pan on background touch
+    if (!e.target.closest(".graph-node") && !e.target.closest(".rel-label-group") && !e.target.closest(".zoom-controls")) {
+      isPanning = true;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+      panStartPanX = panX;
+      panStartPanY = panY;
+    }
+  }
+
   function drawLines() {
     const svg = document.getElementById("graphLines");
     const nodesContainer = document.getElementById("graphNodes");
-    if (!svg || !nodesContainer) return;
+    const graphContent = document.getElementById("graphContent");
+    if (!svg || !nodesContainer || !graphContent) return;
 
-    // Ensure SVG size matches container to render lines correctly
+    // Use a large fixed canvas size so lines render properly at any zoom
+    const canvasSize = 4000;
+    svg.setAttribute("width", canvasSize);
+    svg.setAttribute("height", canvasSize);
     const pRect = nodesContainer.getBoundingClientRect();
-    svg.setAttribute("width", pRect.width);
-    svg.setAttribute("height", pRect.height);
     
     svg.innerHTML = "";
     
